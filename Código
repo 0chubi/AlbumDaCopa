@@ -1,0 +1,124 @@
+#include<stdlib.h>
+#include<stdio.h>
+#include<stdbool.h>
+#include<string.h>
+
+
+typedef struct{
+    char numero[6];
+    char titulo[30];
+    char sessao[40];
+    char tipo[20];
+}Figurinha;
+
+Figurinha figurinhas[671];
+
+typedef struct{
+    char dono[30], telefone[20];
+    int figurinhasColadas;
+    int figurinhasFaltantes;
+    int repetidas;
+    float valorGasto;
+}Album;
+
+int menu(){
+    int opcao;
+
+    printf("---------------MENU------------------\n\n");
+    printf("opcoes:\n");
+    printf("\t\t[1] INFORMACOES DO SEU ALBUM\n");
+    printf("\t\t[2] COMPRAR PACOTE\n");
+    printf("\t\t[3] CADASTRAR FIGURINHA\n");
+    printf("\t\t[4] DADOS DO DONO\n");
+    printf("\t\t[5] INFORMACOES DO PROGRAMA\n");
+    printf("\t\t[6]\n");
+    printf("\t\t[7]\n");
+    printf("\n\t Qual a opcao desejada?");
+    scanf("%d", &opcao);
+    system("clear");
+
+    return opcao;
+}
+
+void cadastraAlbum(Album album){
+    printf("Bem vindo a aba de cadastro de album!\n");
+    printf("-------------------------------------\n\n");
+    printf("Qual seu nome?");
+    fgets(album.dono, 30, stdin);
+    album.dono[strcspn(album.dono, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+    printf("Qual seu telefone, %s?[+22 222222222]", album.dono);
+    fgets(album.telefone, 30, stdin);
+    album.telefone[strcspn(album.telefone, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(2000);
+    printf("Dados cadastrados!");
+    sleep(200);
+    printf("Voltando ao menu principal");
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf(". ");
+        sleep(500);
+    }
+    printf("Aperte qualquer tecla para voltar ao menu principal\n");
+    getch(); 
+    system("clear");
+}
+
+Figurinha cadastraFigurinha(){
+    Figurinha figCadastrada;
+
+    printf("INFORME:\n\n");
+    printf("NUMERO:");
+    fgets(figCadastrada.numero, 6, stdin);
+    figCadastrada.numero[strcspn(figCadastrada.numero, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+
+    printf("TITULO:");
+    fgets(figCadastrada.titulo, 30, stdin);
+    figCadastrada.titulo[strcspn(figCadastrada.titulo, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+
+    printf("SESSAO:");
+    fgets(figCadastrada.sessao, 40, stdin);
+    figCadastrada.sessao[strcspn(figCadastrada.sessao, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+
+    printf("TIPO:");
+    fgets(figCadastrada.tipo, 20, stdin);
+    figCadastrada.tipo[strcspn(figCadastrada.tipo, "\n")]='\0';
+    setbuf(stdin, NULL);
+
+    sleep(2000);
+    printf("Dados cadastrados!");
+    sleep(200);
+    printf("Voltando ao menu principal");
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf(". ");
+        sleep(500);
+    }
+    printf("Aperte qualquer tecla para voltar ao menu principal\n");
+    getch(); 
+    system("clear");
+    return figCadastrada;
+}
+
+void comprarFigurinha(){
+    int quantidadeComprar;
+
+    printf("------COMPRAR FIGURINHAS------\n\n\n");
+    printf("Quantos pacotes deseja comprar?");
+    sacanf("%d", &quantidadeComprar);
+    printf("Tem certeza que deseja compar %d pacotes?\n [1] SIM\n[2] NAO", quantidadeComprar);
+}
+
+int main(){
+
+
+    return 0;
+}
