@@ -11,7 +11,7 @@ typedef struct{
     char tipo[20];
 }Figurinha;
 
-Figurinha figurinhas[671];
+Figurinha figurinhas[678];
 
 typedef struct{
     char dono[30], telefone[20];
