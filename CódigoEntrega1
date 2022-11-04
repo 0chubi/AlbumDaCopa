@@ -1,0 +1,153 @@
+#include<stdlib.h>
+#include<stdio.h>
+#include<stdbool.h>
+#include<string.h>
+#include<windows.h>
+
+
+typedef struct{
+    char numero[6];
+    char nome[30];
+    char sessao[40];
+    char tipo[20];
+}Figurinha;
+
+typedef struct{
+    char dono[30], telefone[20];
+    Figurinha figurinhas[671];
+    Figurinha faltantes[671];
+    Figurinha repetidas[671];
+    float valorGasto;
+}Album;
+
+int menu(){
+    int opcao;
+
+    printf("---------------MENU------------------\n\n");
+    printf("[1] INFORMACOES DO SEU ALBUM\n");
+    printf("[2] COMPRAR PACOTE\n");
+    printf("[3] CADASTRAR FIGURINHA\n");
+    printf("[4] DADOS DO DONO\n");
+    printf("[5] INFORMACOES DO PROGRAMA\n");
+    printf("[6] SAIR\n");
+    //printf("[7]\n");
+    printf("\nQual a opcao desejada?");
+    scanf("%d", &opcao);
+    system("CLS");
+
+    return opcao;
+}//menu
+
+Album imprime(Album* brunao){
+    printf("oi");
+}
+
+void cadastraAlbum(Album* brunao){
+    printf("Bem vindo a aba de cadastro de album!\n");
+    printf("-------------------------------------\n\n");
+    printf("Qual seu nome?\n");
+    fgets(brunao->dono, 30, stdin);
+    brunao->dono[strcspn(brunao->dono, "\n")]='\0';
+    setbuf(stdin, NULL);
+    printf("Qual seu telefone, %s? [+22 222222222]\n", brunao->dono);
+    fgets(brunao->telefone, 30, stdin);
+    brunao->telefone[strcspn(brunao->telefone, "\n")]='\0';
+    setbuf(stdin, NULL);
+    printf("Dados cadastrados!\n");
+    printf("Voltando ao menu principal \nCarregando");
+    for (int i = 0; i < 3; i++){
+        printf(". ");
+        Sleep(500);
+    }
+    printf("\nAperte qualquer tecla para voltar ao menu principal\n");
+    getch();
+    system("CLS");
+}//cadastrando o album
+
+Figurinha cadastraFigurinha(){
+    Figurinha figCadastrada;
+
+    printf("INFORME:\n\n");
+    printf("SESSAO:");
+    fgets(figCadastrada.sessao, 40, stdin);
+    figCadastrada.sessao[strcspn(figCadastrada.sessao, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+
+    printf("NUMERO:");
+    fgets(figCadastrada.numero, 6, stdin);
+    figCadastrada.numero[strcspn(figCadastrada.numero, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+
+    printf("NOME:");
+    fgets(figCadastrada.nome, 30, stdin);
+    figCadastrada.nome[strcspn(figCadastrada.nome, "\n")]='\0';
+    setbuf(stdin, NULL);
+    sleep(500);
+
+    printf("TIPO:");
+    fgets(figCadastrada.tipo, 20, stdin);
+    figCadastrada.tipo[strcspn(figCadastrada.tipo, "\n")]='\0';
+    setbuf(stdin, NULL);
+
+    sleep(2000);
+    printf("Dados cadastrados!");
+    sleep(200);
+    printf("Voltando ao menu principal");
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf(". ");
+        sleep(500);
+    }
+    printf("Aperte qualquer tecla para voltar ao menu principal\n");
+    getch();
+    system("CLS");
+    return figCadastrada;
+}
+
+void comprarFigurinha(){
+    int quantidadeComprar;
+
+    printf("------COMPRAR FIGURINHAS------\n\n\n");
+    printf("Quantos pacotes deseja comprar?");
+    scanf("%d", &quantidadeComprar);
+    printf("Tem certeza que deseja compar %d pacotes?\n [1] SIM\n[2] NAO", quantidadeComprar);
+}
+
+int main(){
+    int op;
+    Album* brunao = (Album*) malloc(sizeof(Album));
+
+    if(brunao == NULL){
+        printf("Erro: Memória Insuficiente!\n");
+        exit(1);
+    }
+
+    cadastraAlbum(&brunao);
+
+    do{
+        op = menu();
+        switch(op){
+            case 1:
+                imprime(&brunao);
+            break;
+
+            case 2:
+                comprarFigurinha();
+            break;
+
+            case 3:
+                cadastraFigurinha();
+            break;
+
+
+        }
+    }while(op != 6);
+
+
+
+
+    free(brunao);
+    return 0;
+}
