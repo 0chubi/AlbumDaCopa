@@ -1,124 +1,431 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<stdbool.h>
-#include<string.h>
+//ALUNOS: Bruno Borges Correa Silva, Murilo Fontana Muniz, Pedro tiene;
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+#include <time.h>
 
 typedef struct{
     char numero[6];
-    char titulo[30];
-    char sessao[40];
+    char nome[30];
+    char secao[40];
     char tipo[20];
 }Figurinha;
 
-Figurinha figurinhas[678];
-
 typedef struct{
     char dono[30], telefone[20];
-    int figurinhasColadas;
-    int figurinhasFaltantes;
-    int repetidas;
+    Figurinha coladas[679];
+    Figurinha* faltantes;
+    Figurinha* repetidas;
     float valorGasto;
+    int qntfalt;
+    int qntcoladas;
+    int qntrepetidas;
 }Album;
 
-int menu(){
-    int opcao;
-
-    printf("---------------MENU------------------\n\n");
-    printf("opcoes:\n");
-    printf("\t\t[1] INFORMACOES DO SEU ALBUM\n");
-    printf("\t\t[2] COMPRAR PACOTE\n");
-    printf("\t\t[3] CADASTRAR FIGURINHA\n");
-    printf("\t\t[4] DADOS DO DONO\n");
-    printf("\t\t[5] INFORMACOES DO PROGRAMA\n");
-    printf("\t\t[6]\n");
-    printf("\t\t[7]\n");
-    printf("\n\t Qual a opcao desejada?");
-    scanf("%d", &opcao);
-    system("clear");
-
-    return opcao;
-}
-
-void cadastraAlbum(Album album){
+void cadastraAlbum(Album* album){
     printf("Bem vindo a aba de cadastro de album!\n");
     printf("-------------------------------------\n\n");
-    printf("Qual seu nome?");
-    fgets(album.dono, 30, stdin);
-    album.dono[strcspn(album.dono, "\n")]='\0';
+    printf("Digite seu nome: ");
+    fgets(album->dono, 30, stdin);
+    album->dono[strcspn(album->dono, "\n")]='\0';
     setbuf(stdin, NULL);
-    sleep(500);
-    printf("Qual seu telefone, %s?[+22 222222222]", album.dono);
-    fgets(album.telefone, 30, stdin);
-    album.telefone[strcspn(album.telefone, "\n")]='\0';
+    printf("Qual seu telefone, %s? [+22 222222222]\n", album->dono);
+    fgets(album->telefone, 30, stdin);
+    album->telefone[strcspn(album->telefone, "\n")]='\0';
     setbuf(stdin, NULL);
-    sleep(2000);
-    printf("Dados cadastrados!");
-    sleep(200);
-    printf("Voltando ao menu principal");
-    for (size_t i = 0; i < 3; i++)
-    {
+    printf("Dados cadastrados!\n");
+    printf("Voltando ao menu principal \nCarregando");
+    for (int i = 0; i < 3; i++){
         printf(". ");
-        sleep(500);
+        Sleep(1000);
     }
-    printf("Aperte qualquer tecla para voltar ao menu principal\n");
-    getch(); 
-    system("clear");
+    printf("\nAperte qualquer tecla para ir ao menu principal\n");
+    getch();
+    system("CLS");
+
+}//cadastrando o album
+
+void cadastrafaltantes(Album* album, Figurinha* geral){
+    album->faltantes = (Figurinha*) calloc(679, sizeof(Figurinha));
+    if (album->faltantes == NULL){
+        printf("Erro ao alocar a memoria (cadastrafaltantes)");
+        exit(1);
+    }//verifica se a memoria foi alocada    
+
+    for (size_t i = 0; i < 679; i++){
+        album->faltantes[i] = geral[i+1];
+    }//salva as figurinhas gerais nas faltantes
+    
+    album->qntfalt = 678;
+}//cadastrafaltantes
+
+void criaAlbum(Album* album, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes, FILE* alb, Figurinha* geral){
+    if (alb == NULL){
+        alb = fopen("Meu_Album_dados.dat", "wb");
+        cadastraAlbum(album);
+        cadastrafaltantes(album, geral);
+        fprintf(alb, "%s,%s\n", album->dono, album->telefone);
+        album->qntrepetidas = 0;
+        album->qntcoladas = 0;
+    }else{
+        arq_coladas = fopen("Meu_Album_coladas.dat", "rb");
+        arq_repetidas = fopen("Meu_Album_repetidas.dat", "rb");
+        arq_faltantes = fopen("Meu_Album_faltantes.dat", "rb");
+
+
+        fscanf(arq_coladas, "%d%[^\n]\n", &album->qntcoladas);
+        fscanf(arq_repetidas, "%d%[^\n]\n", &album->qntrepetidas);
+        fscanf(arq_faltantes, "%d%[^\n]\n", &album->qntfalt);
+        album->repetidas = (Figurinha*) calloc(album->qntrepetidas, sizeof(Figurinha));
+        album->faltantes = (Figurinha*) calloc(album->qntfalt, sizeof(Figurinha));
+        for (size_t i = 0; i <= album->qntcoladas; i++){
+            fscanf(arq_coladas,"%[^,],%[^,],%[^,],%[^\n]\n", &album->coladas[i].numero, &album->coladas[i].nome, &album->coladas[i].secao, &album->coladas[i].tipo);
+        }
+
+        for (size_t i = 0; i <= album->qntrepetidas; i++){
+            fscanf(arq_repetidas,"%[^,],%[^,],%[^,],%[^\n]\n", &album->repetidas[i].numero, &album->repetidas[i].nome, &album->repetidas[i].secao, &album->repetidas[i].tipo);
+        }
+
+        for (size_t i = 0; i <= album->qntfalt; i++){
+            fscanf(arq_faltantes,"%[^,],%[^,],%[^,],%[^\n]\n", &album->faltantes[i].numero, &album->faltantes[i].nome, &album->faltantes[i].secao, &album->faltantes[i].tipo);
+        }
+
+        fclose(arq_coladas);
+        fclose(arq_faltantes);
+        fclose(arq_repetidas);
+        fscanf(alb, "%[^,],%[^\n]\n", album->dono, album->telefone);
+        printf("Bem vindo ao seu Album %s \n", album->dono);
+    }//if verifica se o album existe
 }
 
-Figurinha cadastraFigurinha(){
-    Figurinha figCadastrada;
+void imprimeDados(Album* album, Figurinha* geral, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes){
+    printf("Nome do dono do album: %s\n", album->dono);
+    printf("Telefone de contato: %s\n", album->telefone);
+    printf("Valor Gasto: R$%.2f", album->valorGasto);
+    printf("\nAperte qualquer tecla para voltar ao menu principal\n");
+    getch();
+    system("CLS");
+    menu(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+}//imprime os dados do album
 
-    printf("INFORME:\n\n");
-    printf("NUMERO:");
-    fgets(figCadastrada.numero, 6, stdin);
-    figCadastrada.numero[strcspn(figCadastrada.numero, "\n")]='\0';
-    setbuf(stdin, NULL);
-    sleep(500);
+void cadastrafig(Figurinha* geral){
+    FILE* arq = fopen("figurinhas-corrigido.csv", "r");
+    if(arq == NULL){
+        printf("Erro ao abrir o banco de dados de figurinhas\n");
+        exit(1);
+    }//if verificando se o arq abre
 
-    printf("TITULO:");
-    fgets(figCadastrada.titulo, 30, stdin);
-    figCadastrada.titulo[strcspn(figCadastrada.titulo, "\n")]='\0';
-    setbuf(stdin, NULL);
-    sleep(500);
+    for (size_t i = 0; i < 679; i++){
+      fscanf(arq,"%[^,],%[^,],%[^,],%[^\n]\n", &geral[i].numero, &geral[i].nome, &geral[i].secao, &geral[i].tipo);
+    }//for    
+    
+    fclose(arq);
+}//cadastrafig
 
-    printf("SESSAO:");
-    fgets(figCadastrada.sessao, 40, stdin);
-    figCadastrada.sessao[strcspn(figCadastrada.sessao, "\n")]='\0';
-    setbuf(stdin, NULL);
-    sleep(500);
+void removefigrep(Album* album){
+    int lugarfig;
+    for (size_t i = 0; i <= album->qntrepetidas; i++){
+        if (strcasecmp(album->repetidas[i].numero, "0000") == 0){
+            lugarfig = i;
+            break;
+        }
+    }//for acha a figurinha a ser excluida
 
-    printf("TIPO:");
-    fgets(figCadastrada.tipo, 20, stdin);
-    figCadastrada.tipo[strcspn(figCadastrada.tipo, "\n")]='\0';
-    setbuf(stdin, NULL);
+    for (size_t i = lugarfig; i < album->qntrepetidas ; i++){
+        album->repetidas[i] = album->repetidas[i+1];
+    }//move todas a figurinhas para não ter lacunas
 
-    sleep(2000);
-    printf("Dados cadastrados!");
-    sleep(200);
-    printf("Voltando ao menu principal");
-    for (size_t i = 0; i < 3; i++)
-    {
-        printf(". ");
-        sleep(500);
+    if (album->qntrepetidas > 1){
+        album->qntrepetidas--;
     }
-    printf("Aperte qualquer tecla para voltar ao menu principal\n");
-    getch(); 
-    system("clear");
-    return figCadastrada;
+    
+    if (album->qntrepetidas > 1){
+    album->repetidas = realloc(album->repetidas, (album->qntrepetidas*sizeof(Figurinha)));
+    }//realloca a pilha
 }
 
-void comprarFigurinha(){
+void colarFigcompra(Album* album, Figurinha* geral, int ale){
+    int lugarfig;
+    album->coladas[ale] = geral[ale];
+    printf("Figurinha colada no album!\n");
+    album->qntcoladas++;
+
+    for (size_t i = 0; i <= album->qntfalt; i++){
+        if (strcasecmp(album->coladas[ale].numero, album->faltantes[i].numero) == 0){
+            strcpy(album->faltantes[i].numero, "0000");
+        }
+    }//for que procura nas faltantes a figurinha colada e a renomeia com 0000
+
+    for (size_t i = 0; i <= album->qntfalt; i++){
+        if (strcasecmp(album->faltantes[i].numero, "0000") == 0){
+            lugarfig = i;
+            break;
+        }
+    }//for acha a figurinha a ser excluida
+
+    for (size_t i = lugarfig; i < album->qntfalt ; i++){
+        album->faltantes[i] = album->faltantes[i+1];
+    }//tira a lacuna na qual a figurinha estava
+
+    album->qntfalt--;
+    album->faltantes = realloc(album->faltantes, (album->qntfalt*sizeof(Album)));
+    printf("Quantidade coladas: %d\n", album->qntcoladas);
+}//colar as figurinhas quando sai do pacote
+
+void guardaFig(Album* album, Figurinha* geral, int ale){
+    album->qntrepetidas++;
+    album->repetidas = realloc(album->repetidas, album->qntrepetidas * sizeof(Figurinha));
+    album->repetidas[album->qntrepetidas] = geral[ale];
+    printf("Figurinha adicionada as repetidas!");
+}
+
+void colaFigRep(Album* album, Figurinha* geral, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes){
+    int op;
+    int ale;
+    int lugarfig;
+    printf("Voce tem %d figurinhas repetidas!\n\n", album->qntrepetidas);
+   for(size_t i = 0; i < album->qntrepetidas; i++){
+        for (size_t j = 0; j < album->qntfalt; j++){
+            if(strcasecmp(album->faltantes[j].numero, album->repetidas[i].numero) == 0){
+                for (size_t k = 1; k < 679; k++){
+                    if (strcasecmp(album->repetidas[i].numero, geral[k].numero) == 0){
+                        ale = k;
+                    }   
+                }
+                printf("Figurinha nao colada identificada\n");
+                printf("\n| NUMERO |     TITULO     |    SEÇÃO    |    TIPO    |\n");
+                printf("|%8s|%16s|%13s|%12s|\n", album->repetidas[i].numero, album->repetidas[i].nome, album->repetidas[i].secao, album->repetidas[i].tipo);
+                do{
+                    printf("Deseja colar? [1] Sim [0] Nao\n");
+                    scanf("%d", &op);
+                    if(op == 1){
+                        album->coladas[ale] = geral[ale];
+                        printf("Figurinha colada no album!\n");
+                        album->qntcoladas++;
+
+                        for (size_t i = 0; i <= album->qntrepetidas; i++){
+                            if (strcasecmp(album->coladas[ale].numero, album->repetidas[i].numero) == 0){
+                                strcpy(album->repetidas[i].numero, "0000");
+                            }
+                        }//for que procura nas faltantes a figurinha colada e a renomeia com 0000
+
+                        for (size_t i = 0; i <= album->qntrepetidas; i++){
+                            if (strcasecmp(album->repetidas[i].numero, "0000") == 0){
+                                lugarfig = i;
+                                break;
+                            }
+                        }//for acha a figurinha a ser excluida
+
+                        for (size_t i = lugarfig; i < album->qntrepetidas ; i++){
+                            album->repetidas[i] = album->repetidas[i+1];
+                        }//tira a lacuna na qual a figurinha estava
+
+                        album->qntrepetidas--;
+                        album->repetidas = realloc(album->repetidas, (album->qntrepetidas*sizeof(Album)));
+                        printf("Quantidade coladas: %d\n", album->qntcoladas);
+                    }
+                }while(op != 0 || op != 1);
+            }
+        }   
+    }
+    menu(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+}//colas as figurinha que estão disponiveis nas epetidas que podem ser coladas
+
+void compraFigurinha(Album* album, Figurinha* geral, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes){
+    system("CLS");
+    int ale; //salva o numero aleatorio
+    int respostaUsuario;
     int quantidadeComprar;
+    printf("--------Bem vindo a seção de compra de pacotes--------------\n\n");
+    printf("Digite quantos pacotes deseja comprar [preço unitário: R$4,00]: ");
+    scanf("%d", &quantidadeComprar);
 
-    printf("------COMPRAR FIGURINHAS------\n\n\n");
-    printf("Quantos pacotes deseja comprar?");
-    sacanf("%d", &quantidadeComprar);
-    printf("Tem certeza que deseja compar %d pacotes?\n [1] SIM\n[2] NAO", quantidadeComprar);
+    srand((unsigned) time(NULL));
+
+    for (size_t i = 0; i < quantidadeComprar*5; i++){
+        ale = 1 + rand() % 679;
+    
+        printf("\n| NUMERO |     TITULO     |    SEÇÃO    |    TIPO    |\n");
+        printf("|%8s|%16s|%13s|%12s|\n", geral[ale].numero, geral[ale].nome, geral[ale].secao, geral[ale].tipo);
+        if (strcasecmp(geral[ale].numero, album->coladas[i].numero) != 0){
+            printf("Deseja colar essa figurinha? nao[0] sim[1]\nOBS: se nao colar a figurinha agora voce podera cola-la futuramente\n\n");
+            scanf("%d", &respostaUsuario);
+
+            if(respostaUsuario == 1){
+                colarFigcompra(album, geral, ale);
+            }else{
+                printf("Guarda fig");
+                guardaFig(album, geral, ale);
+            }
+        }
+    }
+    printf("Todas as figurinhas foram visualizadas\nVoltando ao MENU PRINCIPAL");
+    for (int i = 0; i < 3; i++){
+        printf(". ");
+        Sleep(1000);
+    }
+    printf("\nAperte qualquer tecla para voltar ao menu principal\n");
+    getch();
+    system("CLS");
+    menu(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+}//compra figurinha
+
+void sairalbum(Album* album, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes){
+
+    fprintf(arq_coladas, "%d\n", album->qntcoladas);
+    for (size_t i = 0; i < 679; i++){
+        fprintf(arq_coladas,"%s,%s,%s,%s\n", album->coladas[i].numero, album->coladas[i].nome, album->coladas[i].secao, album->coladas[i].tipo);
+    }
+
+    fprintf(arq_repetidas, "%d\n", album->qntrepetidas);
+    for (size_t i = 0; i < album->qntrepetidas; i++){
+        fprintf(arq_repetidas,"%s,%s,%s,%s\n", album->repetidas[i].numero, album->repetidas[i].nome, album->repetidas[i].secao, album->repetidas[i].tipo);
+    }
+
+    fprintf(arq_faltantes, "%d\n", album->qntfalt);
+    for (size_t i = 0; i < album->qntfalt; i++){
+        fprintf(arq_faltantes,"%s,%s,%s,%s\n", album->faltantes[i].numero, album->faltantes[i].nome, album->faltantes[i].secao, album->faltantes[i].tipo);
+    }
+
+}//sai do album e salva no arquivo
+
+void imprimeColadas(Album* album){
+    printf("Aqui estão suas figurinhas COLADAS: \n");
+    printf("\n| NUMERO |     TITULO     |    SEÇÃO    |    TIPO    |\n");
+    for (size_t i = 0; i < album->qntcoladas; i++){
+        printf("|%8s|%16s|%13s|%12s|\n", album->coladas[i].numero, album->coladas[i].nome, album->coladas[i].secao, album->coladas[i].tipo);
+    }
+    printf("\nAperte qualquer tecla para voltar ao submenu\n");
+    getch();
+    system("CLS");
 }
+
+void imprimeFalt(Album *album){
+    printf("Aqui estão suas figurinhas FALTANTES: \n");
+    printf("\n| NUMERO |     TITULO     |    SEÇÃO    |    TIPO    |\n");
+    for (size_t i = 0; i < album->qntfalt; i++){
+        printf("|%8s|%16s|%13s|%12s|\n", album->faltantes[i].numero, album->faltantes[i].nome, album->faltantes[i].secao, album->faltantes[i].tipo);
+    }
+    printf("\nAperte qualquer tecla para voltar ao submenu\n");
+    getch();
+    system("CLS");
+}
+
+void imprimeRepetidas(Album *album){
+    printf("Aqui estão suas figurinhas REPETIDAS: \n");
+    printf("\n| NUMERO |     TITULO     |    SEÇÃO    |    TIPO    |\n");
+    for (size_t i = 0; i < album->qntrepetidas; i++){
+        printf("|%8s|%16s|%13s|%12s|\n", album->repetidas[i].numero, album->repetidas[i].nome, album->repetidas[i].secao, album->repetidas[i].tipo);
+    }
+    printf("\nAperte qualquer tecla para voltar ao submenu\n");
+    getch();
+    system("CLS");
+}
+
+void subMenu(Album* album, Figurinha* geral, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes){
+    int opcao;
+
+    do{
+        printf("---------------SEU ALBUM------------------\n\n");
+        printf("[1] COLADAS\n");
+        printf("[2] FALTANTES\n");
+        printf("[3] REPITIDAS\n");
+        printf("[4] SAIR\n");
+        printf("\nQual a opcao desejada?");
+        scanf("%d", &opcao);
+        system("CLS");
+
+        switch (opcao){
+            case 1:
+                imprimeColadas(album);
+            break;
+            case 2:
+                imprimeFalt(album);
+            break;
+            case 3:
+                imprimeRepetidas(album);
+            break;
+        default:
+            printf("OPCAO INVALIDA!");
+        break;
+        }
+    }while(opcao != 4);
+    menu(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+}
+
+void menu(Album* album, Figurinha* geral, FILE* arq_coladas, FILE* arq_repetidas, FILE* arq_faltantes){
+    int opcao;
+
+    do{
+    printf("---------------MENU------------------\n\n");
+    printf("[1] INFORMACOES DO SEU ALBUM\n");
+    printf("[2] COMPRAR PACOTE\n");
+    printf("[3] COLAR FIGURINHA\n");
+    printf("[4] DADOS DO DONO\n");
+    printf("[5] INFORMACOES DO PROGRAMA\n");
+    printf("[6] SAIR\n");
+    //printf("[7]\n");
+    printf("\nQual a opcao desejada?");
+    scanf("%d", &opcao);
+    system("CLS");
+        switch(opcao){
+            case 1:
+                subMenu(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+            break;
+
+            case 2:
+                compraFigurinha(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+            break;
+
+            case 3:
+                colaFigRep(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+            break;
+
+            case 4:
+                imprimeDados(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
+            break;
+            
+            case 5:
+                // informacoes();
+            break;
+            case 6:
+                sairalbum(album, arq_coladas, arq_repetidas, arq_faltantes);
+            break;
+            default:
+                printf("OPCAO INVALIDA!");
+            break;
+        }
+    }while(opcao =! 6);
+}//menu
 
 int main(){
+    FILE* alb = fopen("Meu_Album_dados.dat", "rb");
+    Album* album = (Album*) malloc(sizeof(Album));
+    FILE* arq_coladas;
+    FILE* arq_faltantes;
+    FILE* arq_repetidas;
+    Figurinha* geral = (Figurinha*) calloc(679, sizeof(Figurinha));
+    cadastrafig(geral);
+    criaAlbum(album, arq_coladas, arq_repetidas, arq_faltantes, alb, geral);
+
+    arq_coladas = fopen("Meu_Album_coladas.dat", "wb");
+    arq_repetidas = fopen("Meu_Album_repetidas.dat", "wb");
+    arq_faltantes = fopen("Meu_Album_faltantes.dat", "wb");
+
+    menu(album, geral, arq_coladas, arq_repetidas, arq_faltantes);
 
 
-    return 0;
-}
+
+    fclose(arq_coladas);
+    fclose(arq_faltantes);
+    fclose(arq_repetidas);
+    free(geral);
+    free(album->qntfalt);
+    free(album->qntrepetidas);
+    free(album->faltantes);
+    free(album);
+    fclose(alb);
+     return 0;
+}//main
